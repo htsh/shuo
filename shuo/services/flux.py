@@ -31,6 +31,8 @@ class FluxService:
         on_end_of_turn: Callable[[str], Awaitable[None]],
         on_start_of_turn: Callable[[], Awaitable[None]],
         on_interim: Optional[Callable[[str], Awaitable[None]]] = None,
+        encoding: str = "mulaw",
+        sample_rate: int = 8000,
     ):
         self._on_end_of_turn = on_end_of_turn
         self._on_start_of_turn = on_start_of_turn
@@ -42,6 +44,8 @@ class FluxService:
         self._cm = None
         self._listener_task: Optional[asyncio.Task] = None
         self._running = False
+        self._encoding = encoding
+        self._sample_rate = sample_rate
 
     @property
     def is_active(self) -> bool:
@@ -65,8 +69,8 @@ class FluxService:
 
             self._cm = self._client.listen.v2.connect(
                 model="flux-general-en",
-                encoding="mulaw",
-                sample_rate=8000,
+                encoding=self._encoding,
+                sample_rate=self._sample_rate,
             )
             self._connection = await self._cm.__aenter__()
 

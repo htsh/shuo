@@ -43,16 +43,18 @@ class Agent:
     def __init__(
         self,
         websocket: WebSocket,
-        stream_sid: str,
+        stream_sid: Optional[str],
         on_done: Callable[[], None],
         tts_pool: TTSPool,
         tracer: Tracer,
+        transport: str = "twilio",
     ):
         self._websocket = websocket
         self._stream_sid = stream_sid
         self._on_done = on_done
         self._tts_pool = tts_pool
         self._tracer = tracer
+        self._transport = transport
 
         # Persistent LLM -- keeps conversation history across turns
         self._llm = LLMService(
@@ -110,11 +112,17 @@ class Agent:
         self._tracer.end(self._turn, "tts_pool")
 
         # Create player
-        self._player = AudioPlayer(
-            websocket=self._websocket,
-            stream_sid=self._stream_sid,
-            on_done=self._on_playback_done,
-        )
+        if self._transport == "realtime":
+            self._player = AudioPlayer.for_realtime(
+                websocket=self._websocket,
+                on_done=self._on_playback_done,
+            )
+        else:
+            self._player = AudioPlayer.for_twilio(
+                websocket=self._websocket,
+                stream_sid=self._stream_sid or "",
+                on_done=self._on_playback_done,
+            )
 
         # Start LLM
         self._tracer.begin(self._turn, "llm")

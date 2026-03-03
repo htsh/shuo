@@ -1,6 +1,6 @@
 # shuo 说
 
-A voice agent framework in ~600 lines of Python. 
+A voice agent framework in ~600 lines of Python.
 
 ```bash
 python main.py +1234567890
@@ -28,7 +28,7 @@ Two abstractions, one pure function:
 - **Agent** — self-contained LLM → TTS → Player pipeline, owns conversation history
 - **`process_event(state, event) → (state, actions)`** — the entire state machine in ~30 lines
 
-Everything streams. LLM tokens feed TTS immediately, TTS audio feeds Twilio immediately. If you interrupt (barge-in), the agent cancels everything and clears the audio buffer instantly.
+Everything streams. LLM tokens feed TTS immediately, then audio streams to Twilio callers or realtime web/mobile websocket clients. If you interrupt (barge-in), the agent cancels everything and clears the downstream audio buffer instantly.
 
 ```
 LISTENING ──EndOfTurn──→ RESPONDING ──Done──→ LISTENING
@@ -46,6 +46,10 @@ shuo/
   agent.py              # LLM → TTS → Player pipeline
   log.py                # Colored logging
   server.py             # FastAPI endpoints
+  realtime/
+    auth.py             # Ephemeral token mint/verify
+    protocol.py         # Realtime websocket message schema
+  static/web/           # Browser mic demo client
   services/
     flux.py             # Deepgram Flux (STT + turns)
     llm.py              # OpenAI GPT-4o-mini streaming
@@ -57,7 +61,7 @@ shuo/
 
 ## Setup
 
-Requires Python 3.9+, [ngrok](https://ngrok.com/), and API keys for Twilio, Deepgram, OpenAI, and ElevenLabs.
+Requires Python 3.9+, [ngrok](https://ngrok.com/), and API keys for Deepgram, Groq, and ElevenLabs (plus Twilio for phone mode). OpenAI is optional for benchmarking endpoints.
 
 ```bash
 pip install -r requirements.txt
@@ -65,6 +69,23 @@ cp .env.example .env   # fill in your keys
 ngrok http 3040        # in another terminal
 python main.py +1234567890
 ```
+
+For full environment variable guidance (including inference keys and realtime auth), see `docs/setup.md`.
+
+## Browser realtime demo
+
+Start the server, open `http://localhost:3040/web`, and click **Start Session**.
+
+```bash
+python main.py
+```
+
+The demo flow:
+1. `POST /v1/realtime/sessions` mints an ephemeral token.
+2. Browser connects to `GET /ws/realtime?token=...`.
+3. Browser sends PCM16 mic audio (16kHz), server returns streamed μ-law audio chunks.
+
+Mobile apps can use the same `/v1/realtime/sessions` + `/ws/realtime` protocol. See `docs/realtime-protocol.md`.
 
 ## Tests
 

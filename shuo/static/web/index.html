@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>shuo realtime voice</title>
+    <link rel="stylesheet" href="/static/web/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel hero">
+        <p class="eyebrow">Realtime Voice Demo</p>
+        <h1>Talk to shuo from your browser microphone</h1>
+        <p class="lede">
+          This client streams PCM16 audio to <code>/ws/realtime</code> and plays back streamed
+          μ-law responses with barge-in support.
+        </p>
+      </section>
+
+      <section class="panel controls">
+        <div class="control-row">
+          <button id="toggle" class="btn btn-primary">Start Session</button>
+          <button id="mute" class="btn btn-secondary" disabled>Mute Playback</button>
+        </div>
+        <div class="chips">
+          <span class="chip" id="status-connection">disconnected</span>
+          <span class="chip" id="status-turn">idle</span>
+          <span class="chip" id="status-mic">mic off</span>
+        </div>
+      </section>
+
+      <section class="panel transcript">
+        <h2>Latest User Transcript</h2>
+        <p id="transcript">-</p>
+      </section>
+
+      <section class="panel log-wrap">
+        <h2>Session Log</h2>
+        <pre id="log" class="log"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="/static/web/app.js"></script>
+  </body>
+</html>
